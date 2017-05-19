@@ -1,13 +1,14 @@
 ﻿* Encoding: UTF-8.
+* Encoding: .
+* Encoding: .
 /* General tips about programming SPSS:
 /*    1) All commands end with periods. 
 /*    1) SPSS provides helpful color-coding. Command names are blue, option names are green, and option 
 
-
 /* First, read in the Excel file with the Box Office Mojo data, using the "Get Data" command */
 
 GET DATA /TYPE=XLSX   /* File type is .xlsx (Excel 2010+) */
-  /FILE='/Users/jordan/Google Drive/movies/data_2016_5_17/boxofficemojo/boxofficemojo2000s.xlsx'   /* Name of file, including the full path (so the script knows where to find it on the computer */
+  /FILE='/Users/jordan/Documents/movies/data_2017_5_9/boxofficemojo/boxofficemojo2000s.xlsx'   /* Name of file, including the full path (so the script knows where to find it on the computer */
   /SHEET=name 'Sheet1'  /* Read from the worksheet called "Sheet1" - this is only needed for Excel files (when you have specified TYPE=XLSX above)
   /CELLRANGE=full  /* Read all cells, do not skip any variables (columns) or cases (rows)
   /READNAMES=on /* Get the names of the variables (columns from the first row of the Excel file
@@ -19,49 +20,42 @@ EXECUTE.
 
 DATASET NAME movies WINDOW=FRONT.
 
+FORMATS totalgross openinggross (DOLLAR10.0).
+FORMATS totaltheaters openingtheaters (F6.0).
+
+VARIABLE LEVEL  opening_year opening_month opening_day (scale).
+
+
+ALTER TYPE key (A13).
+EXECUTE.
+FORMATS key (A13).
+
 COMPUTE  opening_date=DATE.DMY(opening_day, opening_month, opening_year).
 EXECUTE.
 
-/* Each data
-
-STRING newkey (A13).
-EXECUTE.
-COMPUTE newkey = key.
-EXECUTE.
-DELETE VARIABLES key.
-EXECUTE.
-
-
-/* FORMATS key (A21). /* studio (a10).
-/* FORMATS title (A255) mojocomments (A255).
-FORMATS year (F4.0).
-FORMATS total_gross opening_gross (DOLLAR11.0).
-FORMATS total_theaters opening_theaters (F7.0).
 FORMATS opening_date (SDATE10).
-FORMATS editedincrossmatch (F1.0).
 
-DELETE VARIABLES opening_year opening_month opening_day.
-EXECUTE.
+SORT CASES BY key(A).
 
-SORT CASES BY newkey(A).
+
 
 * Let's make sure there are no duplicated key values.
-  DATASET ACTIVATE movies.
-  FREQUENCIES VARIABLES=newkey
-    /FORMAT=DFREQ
+*  DATASET ACTIVATE movies.
+*  FREQUENCIES VARIABLES=key
+   /FORMAT=DFREQ
     /ORDER=ANALYSIS.
-
 /* Duplicated values on the first try, with fixes:
-/* 2007aca08ims   (FIX: remove all Oscar-nominated shorts, since they don't match other datasets anyway)
-/* deathfa09ting   (FIX: was a duplicate, remove one row)
-/* fantasi00max)   (FIX: 35mm & IMAX listed together and separately, remove separate entries)
-/* mission14nary   (FIX: was a duplicate, remove the row with less data listed)
-
-
+/* finalgigirl (FIX: keep one as 2015, delete other two)
+/* offendnder (FIX: keep one as 2012, delete other two)
+/* toystor(3d) (FIX: delete all, these are re-releases)
+/* distric10atum (FIX: delete the one without the b, it is a foreign re-release and has no data anyway
+/* fantasia00max) (FIX: delete separate 35mm & IMAX versions, rename combined one as fantasia002000
+/* forever15015 (FIX: separate movies, now forever15ever and forever15oung
+/* lobster16ase) (FIX: separate releases, keep only US release as lobster16ster
 
 
 GET DATA /TYPE=XLSX
-  /FILE='/Users/jordan/Google Drive/movies/data_2016_5_17/metacritic/metacritic_2000s.xlsx'
+  /FILE='/Users/jordan/Documents/movies/data_2017_5_9/metacritic/metacritic2000s.xlsx'
   /SHEET=name 'Sheet1'
   /CELLRANGE=full
   /READNAMES=on
@@ -69,103 +63,186 @@ GET DATA /TYPE=XLSX
 EXECUTE.
 DATASET NAME metacritic WINDOW=FRONT.
 
-
-STRING newkey (A13).
-EXECUTE.
-COMPUTE newkey = key.
-EXECUTE.
-DELETE VARIABLES key.
+ALTER TYPE key (A13).
 EXECUTE.
 
+FORMATS key (A13).
 
-FORMATS metascore (F3.0) metacritic_user_score (F3.1).
-FORMATS metareleasedate (SDATE10).
+FORMATS metascore (F3.0).
+FORMATS metadate (SDATE10).
 FORMATS metayear (F4.0).
-FORMATS metaeditedcrossmatch (F1.0).
 
-SORT CASES BY newkey(A).
+SORT CASES BY key(A).
 
 * Let's make sure there are no duplicated key values.
-*   DATASET ACTIVATE metacritic.
-*   FREQUENCIES VARIABLES=newkey
-*     /FORMAT=DFREQ
-*     /ORDER=ANALYSIS.
+*   FREQUENCIES VARIABLES=key
+     /FORMAT=DFREQ
+     /ORDER=ANALYSIS.
 
-/* Duplicated values on the first try, with fixes:
-/* chaos03haos   { FIX: got fixed_key values from 2015-4-10 data: "chaos01haos" & "kaosu[c00aos]" }
-/* home06home  { FIX: copied fixed_key values from 2015-4-10 IMBDb data: homeii05meii & homei05omei }
-/* hunter12nter   { FIX: the 01/04/2012 release not found in other datasets, so fix key to hunteii12nter }
-/* lastrid12ride   { FIX: the "Last Ride" (without the) gets fixed_key = "lastrid12the]" }
-/* sleepin11auty   { FIX: the one with "The" was a TV movie, so remove }
-/* student13dent   { FIX: the one with "The" was "El estudiante", so fixed_key = "elestud11ante"; the one without was IMDb in 2012, so fixed_key = "student12dent" }
-/* take08take   { FIX: the one without "The" was "Take" in 2007 in IMDb, so "take07take"; the one with "The" gets "take07the]" }
-
+/* Duplicated values on the first try, with fixes... the hell with this, let's automate.
+*DATASET ACTIVATE metacritic.
+* Identify Duplicate Cases.
+*SORT CASES BY key(A).
+*MATCH FILES
+  /FILE=*
+  /BY key
+  /FIRST=PrimaryFirst
+  /LAST=PrimaryLast.
+*DO IF (PrimaryFirst).
+*COMPUTE  MatchSequence=1-PrimaryLast.
+*ELSE.
+*COMPUTE  MatchSequence=MatchSequence+1.
+*END IF.
+*LEAVE  MatchSequence.
+*FORMATS  MatchSequence (f7).
+*COMPUTE  InDupGrp=MatchSequence>0.
+*SORT CASES InDupGrp(D).
+*MATCH FILES
+  /FILE=*
+  /DROP=PrimaryLast InDupGrp.
+*VARIABLE LABELS  PrimaryFirst 'Indicator of each first matching case as Primary' MatchSequence 
+    'Sequential count of matching cases'.
+*VALUE LABELS  PrimaryFirst 0 'Duplicate Case' 1 'Primary Case'.
+*VARIABLE LEVEL  PrimaryFirst (ORDINAL) /MatchSequence (SCALE).
+*EXECUTE.
+*DATASET COPY  metacritic_duplicates.
+*DATASET ACTIVATE  metacritic_duplicates.
+*FILTER OFF.
+*USE ALL.
+*SELECT IF (MatchSequence>0).
+*EXECUTE.
+*DATASET ACTIVATE  metacritic_duplicates.
+*SAVE TRANSLATE OUTFILE='/Users/jordan/Documents/movies/data_2017_5_9/metacritic/metacritic_duplicates.xlsx'
+  /TYPE=XLS
+  /VERSION=12
+  /MAP
+  /FIELDNAMES VALUE=NAMES
+  /CELLS=VALUES.
 
 DATASET ACTIVATE movies.
 
 MATCH FILES /FILE=*
   /FILE='metacritic'
-  /BY newkey.
+  /IN source01
+  /BY key.
 EXECUTE.
 
 
 DATASET CLOSE metacritic.
 
+VALUE LABELS source01
+    0 'Box Office Mojo'
+    1 'Metacritic'.
 
 
 GET DATA /TYPE=XLSX
-  /FILE='/Users/jordan/Google Drive/movies/data_2016_5_17/imdb/imdb.xlsx'
+  /FILE='/Users/jordan/Documents/movies/data_2017_5_9/imdb/imdb2000s.xlsx'
   /SHEET=name 'Sheet1'
   /CELLRANGE=full
   /READNAMES=on
   /ASSUMEDSTRWIDTH=32767.
 EXECUTE.
 DATASET NAME imdb WINDOW=FRONT.
-
-
-
 DATASET ACTIVATE imdb.
 
+ALTER TYPE key (A13).
+FORMATS key (A13).
 
-STRING newkey (A13).
+MISSING VALUES imdbrating length nVotes budget revenue (-1).
+
+FORMATS imdbrating (F3.1).
+FORMATS length (F5.0).
+FORMATS budget (DOLLAR10.0).
+FORMATS revenue (DOLLAR10.0).
+
+RECODE mpaa ('PG'='0') ('PG-13'='1') ('R'='2').
 EXECUTE.
-COMPUTE newkey = key.
-EXECUTE.
-DELETE VARIABLES key.
-EXECUTE.
 
-FORMATS imdbyear (F4.0). 
-FORMATS userscore (F3.1).
-FORMATS imdbeditedcrossmatch (F1.0).
+VALUE LABELS mpaa
+   0 'PG'
+   1 'PG-13'
+   2 'R'.
 
-SORT CASES BY newkey(A).
-
-/* Let's make sure there are no duplicated key values.
-*  DATASET ACTIVATE imdb.
-*   FREQUENCIES VARIABLES=newkey
-*    /FORMAT=DFREQ
-*   /ORDER=ANALYSIS.
-
-/* Duplicated values on the first try, with fixes:
-/* fistof11saga /* fistoft11kaio, fistoft11raul, fistoft11eray], fistoft11sout, fistoft11toki */
-/* 28weeks07ater /* 28weeks07secs, 28weeks07days */
-/* betterm13rman /* One had A, one had The */
-/* family08mily
-/* monalis04lisa
-/* quest96uest
-/* treasur06land
-/* Also LOTS of things that appeared twice that I didn't track. */
+* Identify Duplicate Cases.
+SORT CASES BY key(A).
+*MATCH FILES
+  /FILE=*
+  /BY key
+  /FIRST=PrimaryFirst
+  /LAST=PrimaryLast.
+*DO IF (PrimaryFirst).
+*COMPUTE  MatchSequence=1-PrimaryLast.
+*ELSE.
+*COMPUTE  MatchSequence=MatchSequence+1.
+*END IF.
+*LEAVE  MatchSequence.
+*FORMATS  MatchSequence (f7).
+*COMPUTE  InDupGrp=MatchSequence>0.
+*SORT CASES InDupGrp(D).
+*MATCH FILES
+  /FILE=*
+  /DROP=PrimaryFirst PrimaryLast InDupGrp.
+*VARIABLE LABELS  MatchSequence 'Sequential count of matching cases'.
+*VARIABLE LEVEL  MatchSequence (SCALE).
+*EXECUTE.
+*DATASET COPY imdb_duplicates.
+*DATASET ACTIVATE imdb_duplicates.
+*SELECT IF MatchSequence > 0.
+*EXECUTE.
+*SORT CASES BY MatchSequence(D).
+*SAVE TRANSLATE OUTFILE='/Users/jordan/Documents/movies/data_2017_5_9/imdb/imdb2000s_duplicates.xlsx'
+  /TYPE=XLS
+  /VERSION=12
+  /MAP
+  /FIELDNAMES VALUE=NAMES
+  /CELLS=VALUES.
 
 
 DATASET ACTIVATE movies.
 
+SORT CASES BY key(A).
+
 MATCH FILES /FILE=*
   /FILE='imdb'
-  /BY newkey.
+  /IN source02
+  /BY key.
 EXECUTE.
 
-
 DATASET CLOSE imdb.
+
+COMPUTE source02 = source02 * 2.
+EXECUTE.
+
+VALUE LABELS source02
+    0 'Previous'
+    2 'IMDb'.
+
+
+COMPUTE sourcedataset=source01.
+EXECUTE.
+
+IF missing(sourcedataset)=1 sourcedataset=source02.
+EXECUTE.
+
+VALUE LABELS sourcedataset
+    0 'Box Office Mojo'
+    1 'Metacritic'
+    2 'IMDb'.
+
+DELETE VARIABLES source01 source02.
+
+DATASET ACTIVATE movies.
+FREQUENCIES VARIABLES=sourcedataset
+  /ORDER=ANALYSIS.
+
+SAVE OUTFILE='/Users/jordan/Documents/movies/data_2017_5_9/allthemovies.sav'
+  /DROP=originalorder metaorder imdborder
+  /COMPRESSED.
+
+
+
+
+
 
 
 
@@ -402,4 +479,10 @@ SAVE TRANSLATE OUTFILE='/Users/jordan/Google Drive/movies/three.xlsx'
 DATASET ACTIVATE three.
 MEANS TABLES=adjusted_gross userscore metascore BY dumpmonth
   /CELLS=MEAN COUNT STDDEV.
+
+
+
+
+
+
 
