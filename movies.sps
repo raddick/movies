@@ -41,7 +41,7 @@ SORT CASES BY key(A).
 
 * Let's make sure there are no duplicated key values.
 *  DATASET ACTIVATE movies.
-*  FREQUENCIES VARIABLES=key
+  FREQUENCIES VARIABLES=key
    /FORMAT=DFREQ
     /ORDER=ANALYSIS.
 /* Duplicated values on the first try, with fixes:
@@ -75,7 +75,7 @@ FORMATS metayear (F4.0).
 SORT CASES BY key(A).
 
 * Let's make sure there are no duplicated key values.
-*   FREQUENCIES VARIABLES=key
+   FREQUENCIES VARIABLES=key
      /FORMAT=DFREQ
      /ORDER=ANALYSIS.
 
@@ -136,7 +136,7 @@ VALUE LABELS source01
 
 
 GET DATA /TYPE=XLSX
-  /FILE='/Users/jordan/Documents/movies/data_2017_5_9/imdb/imdb2000s.xlsx'
+  /FILE='/Users/jordan/Documents/movies/data_2017_5_9/imdb/imdball.xlsx'
   /SHEET=name 'Sheet1'
   /CELLRANGE=full
   /READNAMES=on
@@ -144,6 +144,9 @@ GET DATA /TYPE=XLSX
 EXECUTE.
 DATASET NAME imdb WINDOW=FRONT.
 DATASET ACTIVATE imdb.
+
+
+
 
 ALTER TYPE key (A13).
 FORMATS key (A13).
@@ -163,39 +166,42 @@ VALUE LABELS mpaa
    1 'PG-13'
    2 'R'.
 
-* Identify Duplicate Cases.
 SORT CASES BY key(A).
-*MATCH FILES
+
+* Identify Duplicate Cases.
+
+MATCH FILES
   /FILE=*
   /BY key
   /FIRST=PrimaryFirst
   /LAST=PrimaryLast.
-*DO IF (PrimaryFirst).
-*COMPUTE  MatchSequence=1-PrimaryLast.
-*ELSE.
-*COMPUTE  MatchSequence=MatchSequence+1.
-*END IF.
-*LEAVE  MatchSequence.
-*FORMATS  MatchSequence (f7).
-*COMPUTE  InDupGrp=MatchSequence>0.
-*SORT CASES InDupGrp(D).
-*MATCH FILES
+DO IF (PrimaryFirst).
+COMPUTE  MatchSequence=1-PrimaryLast.
+ELSE.
+COMPUTE  MatchSequence=MatchSequence+1.
+END IF.
+LEAVE  MatchSequence.
+FORMATS  MatchSequence (f7).
+COMPUTE  InDupGrp=MatchSequence>0.
+SORT CASES InDupGrp(D).
+MATCH FILES
   /FILE=*
   /DROP=PrimaryFirst PrimaryLast InDupGrp.
-*VARIABLE LABELS  MatchSequence 'Sequential count of matching cases'.
-*VARIABLE LEVEL  MatchSequence (SCALE).
-*EXECUTE.
-*DATASET COPY imdb_duplicates.
-*DATASET ACTIVATE imdb_duplicates.
-*SELECT IF MatchSequence > 0.
-*EXECUTE.
-*SORT CASES BY MatchSequence(D).
-*SAVE TRANSLATE OUTFILE='/Users/jordan/Documents/movies/data_2017_5_9/imdb/imdb2000s_duplicates.xlsx'
+VARIABLE LABELS  MatchSequence 'Sequential count of matching cases'.
+VARIABLE LEVEL  MatchSequence (SCALE).
+EXECUTE.
+DATASET COPY imdb_duplicates.
+DATASET ACTIVATE imdb_duplicates.
+SELECT IF MatchSequence > 0.
+EXECUTE.
+SORT CASES BY MatchSequence(D).
+SAVE TRANSLATE OUTFILE='/Users/jordan/Documents/movies/data_2017_5_9/imdb/imdb2000s_duplicates.xlsx'
   /TYPE=XLS
   /VERSION=12
   /MAP
   /FIELDNAMES VALUE=NAMES
-  /CELLS=VALUES.
+  /CELLS=VALUES
+  /REPLACE.
 
 
 DATASET ACTIVATE movies.
