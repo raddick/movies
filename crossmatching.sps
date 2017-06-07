@@ -1,12 +1,11 @@
 ﻿* Encoding: UTF-8.
-
 GET
-  FILE='/Users/jordan/Documents/movies/data_2017_5_9/allthemovies.sav'.
+  FILE='H:\GitHub\movies\allthemovies.sav'.
 DATASET NAME allmovies WINDOW=FRONT.
 EXECUTE.
 
 
-SAVE OUTFILE='/Users/jordan/Documents/movies/data_2017_5_9/crossmatch.sav'
+SAVE OUTFILE='H:\GitHub\movies\crossmatch.sav'
   /COMPRESSED
   /KEEP key title opening_year metatitle metayear imdbtitle imdbyear.
 
@@ -14,7 +13,7 @@ SAVE OUTFILE='/Users/jordan/Documents/movies/data_2017_5_9/crossmatch.sav'
 DATASET CLOSE allmovies.
 
 GET
-  FILE='/Users/jordan/Documents/movies/data_2017_5_9/crossmatch.sav'.
+  FILE='h:\GitHub\movies\crossmatch.sav'.
 DATASET NAME cross WINDOW=FRONT.
 EXECUTE.
 
@@ -31,7 +30,7 @@ EXECUTE.
 DELETE VARIABLES title year metatitle metayear.
 EXECUTE.
 
-SAVE OUTFILE='/Users/jordan/Documents/movies/data_2017_5_9/imdbonly.sav'
+SAVE OUTFILE='h:\GitHub\movies\imdbonly.sav'
    /COMPRESSED.
 
 DATASET ACTIVATE  cross.
@@ -47,7 +46,7 @@ SORT CASES BY key.
 
 
 
-SAVE OUTFILE='/Users/jordan/Documents/movies/data_2017_5_9/crossmatch.sav'
+SAVE OUTFILE='h:\GitHub\movies\crossmatch.sav'
   /COMPRESSED.
 
 
