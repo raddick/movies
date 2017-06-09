@@ -363,18 +363,21 @@ VALUE LABELS dumpmonth
 SAVE OUTFILE='C:\Users\sciserver\Documents\GitHub\movies\three.sav'
   /COMPRESSED.
 
+GET FILE='C:\Users\sciserver\Documents\GitHub\movies\three.sav'.
+DATASET NAME three WINDOW=FRONT.
 
-
-SAVE TRANSLATE OUTFILE='C:\Users\sciserver\Documents\GitHub\movies\data_2017_5_9\three.xlsx'
-  /TYPE=XLS
-  /VERSION=12
+SAVE TRANSLATE OUTFILE='C:\Users\sciserver\Documents\GitHub\movies\data_2017_5_9\three.csv'
+  /TYPE=CSV
+  /ENCODING='UTF8'
   /MAP
-  /FIELDNAMES VALUE=LABELS
-  /CELLS=LABELS
-  /REPLACE.
-
+  /REPLACE
+  /FIELDNAMES
+  /CELLS=LABELS.
 
 DATASET ACTIVATE three.
 MEANS TABLES=adjustedgross imdbrating metascore BY dumpmonth
   /CELLS=MEAN COUNT STDDEV
   /STATISTICS ANOVA.
+
+
+
