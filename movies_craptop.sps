@@ -277,34 +277,28 @@ FORMATS adjustedgross adjustedopeninggross (DOLLAR11.0).
 
 SAVE OUTFILE='C:\Users\sciserver\Documents\GitHub\movies\allthemovies.sav'
   /COMPRESSED
-  /KEEP key title releaseyear opening_date
-             releasemonth releaseweekday releaseweeknumber
-             totalgross adjustedgross nVotes imdbrating metascore
+  /KEEP key title metatitle imdbtitle
+             releaseyear releasemonth releaseday
+             opening_date releaseweekday releaseweeknumber 
+             totalgross adjustedgross nVotes imdbrating metascore rank_in_year
+             studio totaltheaters
              mpaa budget country language
              Western History Documentary Musical War Biography RealityTV
              Drama Animation Music Mystery Crime Thriller News SciFi
              Action Sport Comedy Romance Adventure Family TalkShow Horror
-             studio totaltheaters openinggross adjustedopeninggross
+             openinggross adjustedopeninggross
              openingtheaters vote_distribution
              metatitle metayear imdbtitle imdbyear cpimultiplier sourcedataset.
 
 DATASET CLOSE allthemovies.
 
 GET FILE='C:\Users\sciserver\Documents\GitHub\movies\allthemovies.sav'.
-DATASET NAME allmovies WINDOW=FRONT.
-DATASET ACTIVATE allmovies.
+DATASET NAME finalmovies WINDOW=FRONT.
 
 
  SELECT IF (title ~= '' & imdbtitle ~= '' & metatitle ~= '').
  EXECUTE.
    
-SAVE OUTFILE='C:\Users\sciserver\Documents\GitHub\movies\three.sav'
-   /COMPRESSED.
-
-GET FILE='C:\Users\sciserver\Documents\GitHub\movies\three.sav'.
-DATASET NAME three WINDOW=FRONT.
-DATASET ACTIVATE three.
-
 
 * Visual Binning.
 *adjusted_gross.
@@ -360,13 +354,15 @@ VALUE LABELS dumpmonth
    0 'Not a dump month'
    1 'Dump month'.
 
-SAVE OUTFILE='C:\Users\sciserver\Documents\GitHub\movies\three.sav'
+SAVE OUTFILE='C:\Users\sciserver\Documents\GitHub\movies\data_2017_5_9\movies_2017_5_9.sav'
   /COMPRESSED.
 
-GET FILE='C:\Users\sciserver\Documents\GitHub\movies\three.sav'.
-DATASET NAME three WINDOW=FRONT.
+GET FILE='C:\Users\sciserver\Documents\GitHub\movies\data_2017_5_9\movies_2017_5_9.sav'.
+DATASET NAME finalfinalmovies WINDOW=FRONT.
 
-SAVE TRANSLATE OUTFILE='C:\Users\sciserver\Documents\GitHub\movies\data_2017_5_9\three.csv'
+DATASET CLOSE finalmovies.
+
+SAVE TRANSLATE OUTFILE='C:\Users\sciserver\Documents\GitHub\movies\data_2017_5_9\movies_2017_5_9.csv'
   /TYPE=CSV
   /ENCODING='UTF8'
   /MAP
@@ -374,10 +370,9 @@ SAVE TRANSLATE OUTFILE='C:\Users\sciserver\Documents\GitHub\movies\data_2017_5_9
   /FIELDNAMES
   /CELLS=LABELS.
 
-DATASET ACTIVATE three.
+DATASET ACTIVATE finalfinalmovies.
 MEANS TABLES=adjustedgross imdbrating metascore BY dumpmonth
   /CELLS=MEAN COUNT STDDEV
   /STATISTICS ANOVA.
-
 
 
