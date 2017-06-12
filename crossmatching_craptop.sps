@@ -46,6 +46,7 @@ SORT CASES BY key.
 SAVE OUTFILE='C:\Users\sciserver\Documents\GitHub\movies\data_2017_5_9\crossmatch.sav'
   /COMPRESSED.
 
+DATASET CLOSE cross.
 
 GET FILE='C:\Users\sciserver\Documents\GitHub\movies\data_2017_5_9\crossmatch.sav'.
 DATASET NAME all3 WINDOW=FRONT.

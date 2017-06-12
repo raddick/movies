@@ -67,7 +67,7 @@ FORMATS metayear (F4.0).
 SORT CASES BY key(A).
 
 * Let's make sure there are no duplicated key values.
-*   FREQUENCIES VARIABLES=key
+   FREQUENCIES VARIABLES=key
      /FORMAT=DFREQ
      /ORDER=ANALYSIS.
 
@@ -376,3 +376,24 @@ MEANS TABLES=adjustedgross imdbrating metascore BY dumpmonth
   /STATISTICS ANOVA.
 
 
+
+DATASET ACTIVATE DataSet1.
+COUNT nGenres=Western History Documentary Musical War Biography RealityTV Drama Animation Music 
+    Mystery Crime Thriller News SciFi Action Sport Comedy Romance Adventure Family TalkShow Horror(1).
+EXECUTE.
+
+
+
+FREQUENCIES VARIABLES=nGenres
+  /STATISTICS=MEDIAN
+  /ORDER=ANALYSIS.
+
+
+
+
+
+
+FREQUENCIES VARIABLES=Western History Documentary Musical War Biography RealityTV Drama Animation 
+    Music Mystery Crime Thriller News SciFi Action Sport Comedy Romance Adventure Family TalkShow Horror    
+  /FORMAT=DVALUE
+  /ORDER=ANALYSIS.
