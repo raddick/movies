@@ -13,8 +13,6 @@ GET DATA /TYPE=XLSX
   /READNAMES=on /* Get the names of the variables (columns from the first row of the Excel file */
   /ASSUMEDSTRWIDTH=32767. /* Strings (text values) might be as long as 32,767 characters long, the largest possible value. Picking such a large value makes the load time longer, but guarantees we dont't miss anything.
 EXECUTE.
-
-
 * SPSS refers to windows containing data as "datasets." The next line just says to give the data we just opened a name. When we have multiple datasets open, we can switch back and forth between them to run commands.
 DATASET NAME movies WINDOW=FRONT.
 
@@ -23,13 +21,11 @@ FORMATS totaltheaters openingtheaters (F6.0).
 
 VARIABLE LEVEL  opening_year opening_month opening_day (scale).
 
-
 ALTER TYPE key (A13).
 EXECUTE.
 FORMATS key (A13).
 
 SORT CASES BY key(A).
-
 
 * Let's make sure there are no duplicated key values.
 *  DATASET ACTIVATE movies.
@@ -46,14 +42,26 @@ SORT CASES BY key(A).
 /* lobster16ase) (FIX: separate releases, keep only US release as lobster16ster
 
 
-GET DATA /TYPE=XLSX
-  /FILE='C:\Users\sciserver\Documents\GitHub\movies\data_2017_5_9\metacritic\metacritic2000s.xlsx'
+GET DATA
+  /TYPE=XLSX
+  /FILE='C:\Users\sciserver\Documents\GitHub\movies\data_2017_5_9\metacritic\metacritic_all.xlsx'
   /SHEET=name 'Sheet1'
-  /CELLRANGE=full
-  /READNAMES=on
+  /READNAMES=ON
   /ASSUMEDSTRWIDTH=32767.
 EXECUTE.
 DATASET NAME metacritic WINDOW=FRONT.
+
+DELETE VARIABLES exists_on_site has_metascore meta_retrieved.
+DELETE VARIABLES auto_url fixed_url.
+
+RENAME VARIABLES (url = metacritic_url).
+
+COMPUTE meta_retrieved=DATE.DMY(meta_retrieved_day, meta_retrieved_month, meta_retrieved_year).
+EXECUTE.
+
+FORMATS meta_retrieved (SDATE10).
+
+DELETE VARIABLES meta_retrieved_day meta_retrieved_month meta_retrieved_year.
 
 ALTER TYPE key (A13).
 EXECUTE.
@@ -67,7 +75,7 @@ FORMATS metayear (F4.0).
 SORT CASES BY key(A).
 
 * Let's make sure there are no duplicated key values.
-   FREQUENCIES VARIABLES=key
+*   FREQUENCIES VARIABLES=key
      /FORMAT=DFREQ
      /ORDER=ANALYSIS.
 
@@ -78,7 +86,6 @@ MATCH FILES /FILE=*
   /IN source01
   /BY key.
 EXECUTE.
-
 
 DATASET CLOSE metacritic.
 
@@ -172,7 +179,6 @@ VALUE LABELS source02
     0 'Previous'
     2 'IMDb'.
 
-
 COMPUTE sourcedataset=source01.
 EXECUTE.
 
@@ -190,7 +196,6 @@ DATASET ACTIVATE movies.
 FREQUENCIES VARIABLES=sourcedataset
   /ORDER=ANALYSIS.
 
-
 SAVE OUTFILE='C:\Users\sciserver\Documents\GitHub\movies\data_2017_5_9\allthemovies.sav'
   /DROP=originalorder metaorder imdborder
   /COMPRESSED.
@@ -202,7 +207,6 @@ DATASET NAME allthemovies WINDOW=FRONT.
 DATASET ACTIVATE allthemovies.
 
 RENAME VARIABLES (opening_day opening_month opening_year = releaseday releasemonth releaseyear).
-
 
 DO IF (missing(releaseday) = 0 AND missing(releasemonth) = 0 AND missing(releaseyear) = 0).
 COMPUTE opening_date=DATE.DMY(releaseday, releasemonth, releaseyear).
@@ -246,7 +250,6 @@ EXECUTE.
 
 FORMATS releaseweeknumber (F2.0).
 
-
 GET DATA /TYPE=XLSX
   /FILE='C:\Users\sciserver\Documents\GitHub\movies\inflation\cpi.xlsx'
   /SHEET=name 'Sheet1'
@@ -257,10 +260,8 @@ EXECUTE.
 DATASET NAME cpidata WINDOW=FRONT.
 SORT CASES BY opening_date.
 
-
 DATASET ACTIVATE allthemovies.
 SORT CASES BY opening_date.
-
 
 MATCH FILES /FILE=*
   /TABLE='cpidata'
@@ -275,30 +276,37 @@ EXECUTE.
 
 FORMATS adjustedgross adjustedopeninggross (DOLLAR11.0).
 
-SAVE OUTFILE='C:\Users\sciserver\Documents\GitHub\movies\allthemovies.sav'
+COUNT nGenres=Western History Documentary Musical War Biography RealityTV Drama Animation Music 
+    Mystery Crime Thriller News SciFi Action Sport Comedy Romance Adventure Family TalkShow Horror(1).
+EXECUTE.
+
+FORMATS nGenres(F2.0).
+
+SAVE OUTFILE='C:\Users\sciserver\Documents\GitHub\movies\data_2017_5_9\allthemovies.sav'
   /COMPRESSED
-  /KEEP key title metatitle imdbtitle
+  /KEEP key title metatitle metayear imdbtitle imdbyear
              releaseyear releasemonth releaseday
              opening_date releaseweekday releaseweeknumber 
              totalgross adjustedgross nVotes imdbrating metascore rank_in_year
              studio totaltheaters
-             mpaa budget country language
+             mpaa budget country language nGenres
              Western History Documentary Musical War Biography RealityTV
              Drama Animation Music Mystery Crime Thriller News SciFi
              Action Sport Comedy Romance Adventure Family TalkShow Horror
              openinggross adjustedopeninggross
              openingtheaters vote_distribution
-             metatitle metayear imdbtitle imdbyear cpimultiplier sourcedataset.
+             boxofficemojo_url metacritic_url 
+             meta_retrieved cpimultiplier sourcedataset.
 
 DATASET CLOSE allthemovies.
 
-GET FILE='C:\Users\sciserver\Documents\GitHub\movies\allthemovies.sav'.
+GET FILE='C:\Users\sciserver\Documents\GitHub\movies\data_2017_5_9\allthemovies.sav'.
 DATASET NAME finalmovies WINDOW=FRONT.
-
 
  SELECT IF (title ~= '' & imdbtitle ~= '' & metatitle ~= '').
  EXECUTE.
-   
+
+SORT CASES BY key.
 
 * Visual Binning.
 *adjusted_gross.
@@ -320,7 +328,6 @@ VALUE LABELS  nvotes_binned 1 'Less than 100 votes' 2 '101-1,000 votes' 3 '1,001
     5 'More than 100,000 votes' .
 VARIABLE LEVEL  nvotes_binned (ORDINAL).
 EXECUTE.
-
 
 /*DELETE VARIABLES releaseperiod.
 /*COMPUTE releaseperiod = 0.
@@ -357,43 +364,32 @@ VALUE LABELS dumpmonth
 SAVE OUTFILE='C:\Users\sciserver\Documents\GitHub\movies\data_2017_5_9\movies_2017_5_9.sav'
   /COMPRESSED.
 
+DATASET CLOSE finalmovies.
+
 GET FILE='C:\Users\sciserver\Documents\GitHub\movies\data_2017_5_9\movies_2017_5_9.sav'.
 DATASET NAME finalfinalmovies WINDOW=FRONT.
 
-DATASET CLOSE finalmovies.
+DATASET ACTIVATE finalfinalmovies.
+*MEANS TABLES=adjustedgross imdbrating metascore BY dumpmonth
+  /CELLS=MEAN COUNT STDDEV
+  /STATISTICS ANOVA.
+
+*FREQUENCIES VARIABLES=nGenres
+  /STATISTICS=MEDIAN
+  /ORDER=ANALYSIS.
+
+*FREQUENCIES VARIABLES=Western History Documentary Musical War Biography RealityTV Drama Animation 
+    Music Mystery Crime Thriller News SciFi Action Sport Comedy Romance Adventure Family TalkShow Horror    
+  /FORMAT=DVALUE
+  /ORDER=ANALYSIS.
 
 SAVE TRANSLATE OUTFILE='C:\Users\sciserver\Documents\GitHub\movies\data_2017_5_9\movies_2017_5_9.csv'
   /TYPE=CSV
   /ENCODING='UTF8'
   /MAP
   /REPLACE
+  /DROP adjustedgrossbinned nvotes_binned dumpmonth
   /FIELDNAMES
   /CELLS=LABELS.
 
-DATASET ACTIVATE finalfinalmovies.
-MEANS TABLES=adjustedgross imdbrating metascore BY dumpmonth
-  /CELLS=MEAN COUNT STDDEV
-  /STATISTICS ANOVA.
 
-
-
-DATASET ACTIVATE DataSet1.
-COUNT nGenres=Western History Documentary Musical War Biography RealityTV Drama Animation Music 
-    Mystery Crime Thriller News SciFi Action Sport Comedy Romance Adventure Family TalkShow Horror(1).
-EXECUTE.
-
-
-
-FREQUENCIES VARIABLES=nGenres
-  /STATISTICS=MEDIAN
-  /ORDER=ANALYSIS.
-
-
-
-
-
-
-FREQUENCIES VARIABLES=Western History Documentary Musical War Biography RealityTV Drama Animation 
-    Music Mystery Crime Thriller News SciFi Action Sport Comedy Romance Adventure Family TalkShow Horror    
-  /FORMAT=DVALUE
-  /ORDER=ANALYSIS.
