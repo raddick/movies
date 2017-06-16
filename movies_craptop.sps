@@ -28,7 +28,6 @@ FORMATS key (A13).
 SORT CASES BY key(A).
 
 * Let's make sure there are no duplicated key values.
-*  DATASET ACTIVATE movies.
 *  FREQUENCIES VARIABLES=key
    /FORMAT=DFREQ
     /ORDER=ANALYSIS.
