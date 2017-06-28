@@ -307,26 +307,30 @@ DATASET NAME finalmovies WINDOW=FRONT.
 
 SORT CASES BY key.
 
+SAVE OUTFILE='C:\Users\sciserver\Documents\GitHub\movies\data_2017_5_9\movies_2017_5_9.sav'
+  /COMPRESSED.
+
+
 * Visual Binning.
 *adjusted_gross.
-RECODE  adjustedgross (MISSING=COPY) (LO THRU 100000 = 1) (100001 THRU 10000000 = 2) (10000001 THRU 100000000 = 3) 
+*RECODE  adjustedgross (MISSING=COPY) (LO THRU 100000 = 1) (100001 THRU 10000000 = 2) (10000001 THRU 100000000 = 3) 
     (100000001 THRU HI = 4) (ELSE=SYSMIS) INTO adjustedgrossbinned.
-FORMATS  adjustedgrossbinned (F1.0).
-VALUE LABELS  adjustedgrossbinned 1 'Less than $100,000' 2 '$100,000 to $10 million' 3 '$10-100 million' 4 'More than '+
+*FORMATS  adjustedgrossbinned (F1.0).
+*VALUE LABELS  adjustedgrossbinned 1 'Less than $100,000' 2 '$100,000 to $10 million' 3 '$10-100 million' 4 'More than '+
     '$100 million'.
-VARIABLE LEVEL  adjustedgrossbinned (ORDINAL).
-EXECUTE.
+*VARIABLE LEVEL  adjustedgrossbinned (ORDINAL).
+*EXECUTE.
 
 * Visual Binning.
 *nvotes.
-RECODE  nvotes (MISSING=COPY) (LO THRU 100=1) (101 THRU 1000=2) (1001 THRU 10000=3) (10001 THRU 100000=4) 
+*RECODE  nvotes (MISSING=COPY) (LO THRU 100=1) (101 THRU 1000=2) (1001 THRU 10000=3) (10001 THRU 100000=4) 
     (100001 THRU HI=5) (ELSE=SYSMIS) INTO nvotes_binned.
-VARIABLE LABELS  nvotes_binned 'nvotes (Binned)'.
-FORMATS  nvotes_binned (F5.0).
-VALUE LABELS  nvotes_binned 1 'Less than 100 votes' 2 '101-1,000 votes' 3 '1,001-10,000 votes' 4 '10,001-100,000 votes'
+*VARIABLE LABELS  nvotes_binned 'nvotes (Binned)'.
+*FORMATS  nvotes_binned (F5.0).
+*VALUE LABELS  nvotes_binned 1 'Less than 100 votes' 2 '101-1,000 votes' 3 '1,001-10,000 votes' 4 '10,001-100,000 votes'
     5 'More than 100,000 votes' .
-VARIABLE LEVEL  nvotes_binned (ORDINAL).
-EXECUTE.
+*VARIABLE LEVEL  nvotes_binned (ORDINAL).
+*EXECUTE.
 
 /*DELETE VARIABLES releaseperiod.
 /*COMPUTE releaseperiod = 0.
@@ -346,29 +350,29 @@ EXECUTE.
 
 /*DELETE VARIABLES dumpmonth.
 
-COMPUTE dumpmonth=0.
-EXECUTE.
+*COMPUTE dumpmonth=0.
+*EXECUTE.
 /*IF (releaseperiod<=3) dumpmonth=1.
 /* IF (releasemonth <= 2 | releasemonth=8 | releasemonth=9) dumpmonth=1.
-IF (releasemonth<=4 | releasemonth=8 | releasemonth=9 | releasemonth=10) dumpmonth=1.
-EXECUTE.
+*IF (releasemonth<=4 | releasemonth=8 | releasemonth=9 | releasemonth=10) dumpmonth=1.
+*EXECUTE.
 
 
-VARIABLE LEVEL dumpmonth (NOMINAL).
-FORMATS dumpmonth (F1.0).
-VALUE LABELS dumpmonth 
+*VARIABLE LEVEL dumpmonth (NOMINAL).
+*FORMATS dumpmonth (F1.0).
+*VALUE LABELS dumpmonth 
    0 'Not a dump month'
    1 'Dump month'.
 
-SAVE OUTFILE='C:\Users\sciserver\Documents\GitHub\movies\data_2017_5_9\movies_2017_5_9.sav'
+*SAVE OUTFILE='C:\Users\sciserver\Documents\GitHub\movies\data_2017_5_9\movies_2017_5_9.sav'
   /COMPRESSED.
 
-DATASET CLOSE finalmovies.
+*DATASET CLOSE finalmovies.
 
-GET FILE='C:\Users\sciserver\Documents\GitHub\movies\data_2017_5_9\movies_2017_5_9.sav'.
-DATASET NAME finalfinalmovies WINDOW=FRONT.
+*GET FILE='C:\Users\sciserver\Documents\GitHub\movies\data_2017_5_9\movies_2017_5_9.sav'.
+*DATASET NAME finalfinalmovies WINDOW=FRONT.
 
-DATASET ACTIVATE finalfinalmovies.
+*DATASET ACTIVATE finalfinalmovies.
 *MEANS TABLES=adjustedgross imdbrating metascore BY dumpmonth
   /CELLS=MEAN COUNT STDDEV
   /STATISTICS ANOVA.
@@ -382,7 +386,7 @@ DATASET ACTIVATE finalfinalmovies.
   /FORMAT=DVALUE
   /ORDER=ANALYSIS.
 
-SAVE TRANSLATE OUTFILE='C:\Users\sciserver\Documents\GitHub\movies\data_2017_5_9\movies_2017_5_9.csv'
+*SAVE TRANSLATE OUTFILE='C:\Users\sciserver\Documents\GitHub\movies\data_2017_5_9\movies_2017_5_9.csv'
   /TYPE=CSV
   /ENCODING='UTF8'
   /MAP
@@ -390,5 +394,6 @@ SAVE TRANSLATE OUTFILE='C:\Users\sciserver\Documents\GitHub\movies\data_2017_5_9
   /DROP adjustedgrossbinned nvotes_binned dumpmonth
   /FIELDNAMES
   /CELLS=LABELS.
+
 
 
