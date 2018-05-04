@@ -1,2 +1,3 @@
 # zip files containing old data
 *.zip
+omdb_all/
