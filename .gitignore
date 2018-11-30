@@ -1,4 +1,4 @@
 # zip files containing old data
 *.zip
 omdb_all/
-data/movies_omdb_all.csv
+data/
